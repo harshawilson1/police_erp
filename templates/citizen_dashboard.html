@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>citizen dashboard</title>
+    
+</head>
+<body>
+{% extends 'admin_base.html' %}
+
+{% block title %}Citizen Dashboard{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+  <section class="content pt-4">
+    <div class="container-fluid">
+
+      <div class="row">
+
+        <div class="col-lg-4 col-6">
+          <div class="small-box bg-info">
+            <div class="inner">
+              <h4>File Complaint</h4>
+              <p>Register a new complaint</p>
+            </div>
+            <a href="/file_complaint" class="small-box-footer">
+              Go <i class="fas fa-arrow-circle-right"></i>
+            </a>
+          </div>
+        </div>
+
+        <div class="col-lg-4 col-6">
+          <div class="small-box bg-success">
+            <div class="inner">
+              <h4>My Complaints</h4>
+              <p>View complaint status</p>
+            </div>
+            <a href="/my_complaints" class="small-box-footer">
+              Go <i class="fas fa-arrow-circle-right"></i>
+            </a>
+          </div>
+        </div>
+
+        <div class="col-lg-4 col-6">
+          <div class="small-box bg-secondary">
+            <div class="inner">
+              <h4>Logout</h4>
+              <p>End session</p>
+            </div>
+            <a href="/logout" class="small-box-footer">
+              Logout <i class="fas fa-sign-out-alt"></i>
+            </a>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+</body>
+</html>

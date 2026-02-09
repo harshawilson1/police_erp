@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>View FIRs</title>
+
+    <!-- Bootstrap CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+
+<!-- Navbar -->
+<nav class="navbar navbar-dark bg-dark">
+    <div class="container-fluid">
+        <span class="navbar-brand">Police ERP System</span>
+        <a href="/dashboard" class="btn btn-outline-light btn-sm">Dashboard</a>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="container mt-4">
+    <h3 class="mb-3 text-center">FIR Records</h3>
+
+    <div class="card shadow">
+        <div class="card-body">
+
+            <table class="table table-bordered table-striped align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>FIR ID</th>
+                        <th>Citizen Name</th>
+                        <th>Crime Type</th>
+                        <th>Status</th>
+                        <th>Actions</th> <!-- 👈 IMPORTANT COLUMN -->
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for fir in firs %}
+                    <tr>
+                        <td>{{ fir[0] }}</td>
+                        <td>{{ fir[1] }}</td>
+                        <td>{{ fir[2] }}</td>
+                        <td>{{ fir[3] }}</td>
+
+                        <!-- 👇 THIS IS WHERE BUTTONS GO -->
+                        <td>
+                            <a href="/edit_fir/{{ fir[0] }}" class="btn btn-warning btn-sm">
+                                Edit
+                            </a>
+
+                            <a href="/delete_fir/{{ fir[0] }}"
+                               class="btn btn-danger btn-sm"
+                               onclick="return confirm('Are you sure you want to delete this FIR?');">
+                                Delete
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <a href="/add_fir" class="btn btn-primary">Add New FIR</a>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

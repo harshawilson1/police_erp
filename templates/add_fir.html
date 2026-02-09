@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add FIR</title>
+
+    <!-- Bootstrap CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+
+<!-- Navbar -->
+<nav class="navbar navbar-dark bg-dark">
+    <div class="container-fluid">
+        <span class="navbar-brand mb-0 h1">Police ERP System</span>
+        <a href="/dashboard" class="btn btn-outline-light btn-sm">Dashboard</a>
+    </div>
+</nav>
+
+<!-- Main Container -->
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+
+            <div class="card shadow-lg">
+                <div class="card-body">
+                    <h3 class="card-title mb-4 text-center">Register FIR</h3>
+
+                    <!-- FIR Form -->
+                    <form method="POST">
+
+                        <!-- Citizen Dropdown -->
+                        <!-- Citizen Name -->
+<div class="mb-3">
+    <label class="form-label">Citizen Name</label>
+    <input type="text" name="citizen_name" class="form-control" required>
+</div>
+
+<!-- Citizen Phone -->
+<div class="mb-3">
+    <label class="form-label">Citizen Phone</label>
+    <input type="text" name="citizen_phone" class="form-control">
+</div>
+
+<!-- Citizen Address -->
+<div class="mb-3">
+    <label class="form-label">Citizen Address</label>
+    <textarea name="citizen_address" class="form-control"></textarea>
+</div>
+
+
+                        <!-- Crime Dropdown -->
+                        <div class="mb-3">
+                            <label class="form-label">Crime Type</label>
+                            <select name="crime_id" class="form-select" required>
+                                <option value="">Select Crime</option>
+                                {% for cr in crimes %}
+                                    <option value="{{ cr[0] }}">{{ cr[1] }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Police Station Dropdown -->
+                        <div class="mb-3">
+                            <label class="form-label">Police Station</label>
+                            <select name="station_id" class="form-select" required>
+                                <option value="">Select Station</option>
+                                {% for s in stations %}
+                                    <option value="{{ s[0] }}">{{ s[1] }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Status -->
+                        <div class="mb-3">
+                            <label class="form-label">Case Status</label>
+                            <input type="text" name="status" class="form-control" placeholder="Open / Under Investigation / Closed">
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-primary">
+                                Submit FIR
+                            </button>
+                            <a href="/view_fir" class="btn btn-secondary">
+                                View FIRs
+                            </a>
+                        </div>
+
+                    </form>
+                    <!-- End Form -->
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
