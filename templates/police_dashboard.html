@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Police ERP Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <style>
+        body {
+            overflow-x: hidden;
+            background-color: #f4f6f9;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            height: 100vh;
+            background: #0d1b2a;
+            position: fixed;
+            width: 240px;
+            padding-top: 20px;
+            transition: 0.3s;
+        }
+
+        .sidebar.collapsed {
+            width: 70px;
+        }
+
+        .sidebar h4 {
+            color: white;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            margin: 6px 10px;
+            color: #cbd5e1;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: 0.2s;
+        }
+
+        .sidebar a i {
+            font-size: 18px;
+            width: 25px;
+        }
+
+        .sidebar a span {
+            margin-left: 10px;
+        }
+
+        .sidebar a:hover {
+            background: #1b263b;
+            color: #fff;
+            transform: translateX(4px);
+        }
+
+        .sidebar a.active {
+            background: #1b263b;
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .sidebar.collapsed a span {
+            display: none;
+        }
+
+        /* CONTENT */
+        .content {
+            margin-left: 240px;
+            padding: 20px;
+            transition: 0.3s;
+        }
+
+        .content.collapsed {
+            margin-left: 70px;
+        }
+
+        /* CARDS */
+        .card-hover:hover {
+            transform: translateY(-3px);
+            transition: 0.2s;
+        }
+
+        /* PROFILE */
+        .profile-img {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <h4 class="text-center mb-3">Police ERP</h4>
+    <hr style="border-color: rgba(255,255,255,0.15);">
+
+    <a href="/police_dashboard" class="active">
+        <i class="bi bi-speedometer2"></i>
+        <span>Dashboard</span>
+    </a>
+
+    <a href="/add_fir">
+        <i class="bi bi-file-earmark-plus"></i>
+        <span>Add FIR</span>
+    </a>
+
+    <a href="/view_fir">
+        <i class="bi bi-folder2-open"></i>
+        <span>View FIRs</span>
+    </a>
+
+    <a href="#">
+        <i class="bi bi-calendar-event"></i>
+        <span>Court Dates</span>
+    </a>
+
+    <a href="#">
+        <i class="bi bi-people"></i>
+        <span>Officers</span>
+    </a>
+
+    <a href="#">
+        <i class="bi bi-gear"></i>
+        <span>Settings</span>
+    </a>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="content">
+
+    <!-- TOP NAV -->
+    <nav class="navbar navbar-light bg-white shadow-sm rounded mb-4">
+        <div class="container-fluid">
+
+            <div class="d-flex align-items-center">
+                <button class="btn btn-outline-secondary me-3" onclick="toggleSidebar()">
+                    <i class="bi bi-list"></i>
+                </button>
+                <span class="navbar-brand">Welcome, Officer</span>
+            </div>
+
+            <div class="d-flex align-items-center">
+                <img src="https://i.pravatar.cc/40" class="profile-img me-2">
+                <div>
+                    <strong>Inspector Raj</strong><br>
+                    <small class="text-muted">Central Station</small>
+                </div>
+            </div>
+
+        </div>
+    </nav>
+
+    <!-- STATS -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card shadow card-hover text-center">
+                <div class="card-body">
+                    <h4>{{ total_firs }}</h4>
+                    <p>Total FIRs</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow card-hover text-center">
+                <div class="card-body">
+                    <h4>{{ open_cases }}</h4>
+                    <p>Open Cases</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow card-hover text-center">
+                <div class="card-body">
+                    <h4>{{ total_officers }}</h4>
+                    <p>Total Officers</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow card-hover text-center">
+                <div class="card-body">
+                    <h4>{{ total_citizens }}</h4>
+                    <p>Registered Citizens</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAP + COURT -->
+    <div class="row g-3">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h5>Crime Heat Map (Police Only)</h5>
+                    <div id="crimeMap" style="height: 450px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h5>Upcoming Court Dates</h5>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">FIR 101 – 20 Feb 2026</li>
+                        <li class="list-group-item">FIR 112 – 25 Feb 2026</li>
+                        <li class="list-group-item">FIR 130 – 28 Feb 2026</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- MAP SCRIPT -->
+<script>
+var street = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+var satellite = L.tileLayer(
+    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+);
+
+var map = L.map('crimeMap', {
+    center: [20.5937, 78.9629],
+    zoom: 5,
+    layers: [satellite]
+});
+
+L.control.layers({
+    "Satellite View": satellite,
+    "Street View": street
+}).addTo(map);
+
+const crimeData = {{ crime_data | tojson }};
+
+crimeData.forEach(item => {
+    if (!item.latitude || !item.longitude) return;
+
+    let color = item.total_cases > 20 ? 'red' :
+                item.total_cases > 10 ? 'orange' : 'green';
+
+    L.circleMarker([item.latitude, item.longitude], {
+        radius: 10,
+        color,
+        fillColor: color,
+        fillOpacity: 0.75
+    }).addTo(map)
+      .bindPopup(`<strong>${item.city}</strong><br>Total Crimes: ${item.total_cases}`);
+});
+
+function toggleSidebar() {
+    document.querySelector('.sidebar').classList.toggle('collapsed');
+    document.querySelector('.content').classList.toggle('collapsed');
+}
+</script>
+
+</body>
+</html>

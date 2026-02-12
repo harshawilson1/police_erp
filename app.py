@@ -1,6 +1,10 @@
-from flask import Flask, render_template, request, redirect, session, url_for
+from flask import Flask, render_template, request, redirect, session, url_for,flash
 from flask_mysqldb import MySQL
 import MySQLdb.cursors
+from werkzeug.security import generate_password_hash
+from MySQLdb import IntegrityError
+
+
 app = Flask(__name__)
 app.secret_key = 'police_erp_secret'
 
@@ -30,7 +34,7 @@ def login():
         if user:
             session['role'] = user[0]
             session['username'] = username
-            return redirect('/dashboard')
+            return redirect('/police_dashboard')
 
     return render_template('login.html')
 
@@ -41,11 +45,24 @@ def logout():
     return redirect('/')
 
 # ---------- DASHBOARD ----------
-@app.route('/dashboard')
-def dashboard():
-    if 'username' not in session:
-        return redirect('/')
-    return render_template('dashboard.html')
+@app.route('/police_dashboard')
+def police_dashboard():
+
+    cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+    cur.execute("""
+        SELECT city, latitude, longitude, COUNT(*) AS total_cases
+        FROM fir
+        GROUP BY city, latitude, longitude
+    """)
+
+    crime_data = cur.fetchall()
+    cur.close()
+
+    return render_template(
+        'police_dashboard.html',
+        crime_data=crime_data
+    )
 
 # ---------- ADD FIR ----------
 @app.route('/add_fir', methods=['GET', 'POST'])
@@ -166,38 +183,51 @@ def station_report():
     cur.close()
 
     return render_template('report.html', data=data)
+from werkzeug.security import generate_password_hash
+from flask import flash
 
 @app.route('/citizen_register', methods=['GET', 'POST'])
 def citizen_register():
     if request.method == 'POST':
         name = request.form['name']
+        aadhar = request.form['aadhar_no']
         phone = request.form['phone']
         address = request.form['address']
-        username = request.form['username']
-        password = request.form['password']
+        password = generate_password_hash(request.form['password'])
 
-        cur = mysql.connection.cursor()
+        cursor = mysql.connection.cursor()
 
-        # Insert into citizen table
-        cur.execute(
-            "INSERT INTO citizen (name, phone, address) VALUES (%s, %s, %s)",
-            (name, phone, address)
-        )
-        citizen_id = cur.lastrowid
+        try:
+            # Insert into citizen table
+            cursor.execute("""
+                INSERT INTO citizen (name, aadhar_no, phone, address)
+                VALUES (%s, %s, %s, %s)
+            """, (name, aadhar, phone, address))
 
-        # Insert login credentials
-        cur.execute(
-            "INSERT INTO citizen_users (citizen_id, username, password) VALUES (%s, %s, %s)",
-            (citizen_id, username, password)
-        )
+            citizen_id = cursor.lastrowid
 
-        mysql.connection.commit()
-        cur.close()
+            # Insert into login table
+            cursor.execute("""
+                INSERT INTO citizen_users (citizen_id, username, password_hash)
+                VALUES (%s, %s, %s)
+            """, (citizen_id, aadhar, password))
 
-        return redirect('/citizen_login')
+            mysql.connection.commit()
+            flash("Registration successful. Please login.", "success")
+            return redirect('/citizen_login')
+
+        except Exception:
+            mysql.connection.rollback()
+            flash("Citizen already exists.", "danger")
+
+        finally:
+            cursor.close()
 
     return render_template('citizen_register.html')
 
+
+
+from werkzeug.security import check_password_hash
 
 @app.route('/citizen_login', methods=['GET', 'POST'])
 def citizen_login():
@@ -205,36 +235,62 @@ def citizen_login():
         username = request.form['username']
         password = request.form['password']
 
-        cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cur.execute(
-            "SELECT * FROM citizen_users WHERE username=%s AND password=%s",
-            (username, password)
-        )
-        user = cur.fetchone()
-        cur.close()
+        cursor = mysql.connection.cursor()
+        cursor.execute("""
+            SELECT password_hash FROM citizen_users WHERE username = %s
+        """, (username,))
 
-        if user:
-            session['citizen_id'] = user['citizen_id']
-            session['citizen_user_id'] = user['citizen_user_id']
+        user = cursor.fetchone()
+        cursor.close()
+
+        if user and check_password_hash(user[0], password):
             return redirect('/citizen_dashboard')
         else:
-            return render_template('citizen_login.html', error="Invalid login")
+            flash("Invalid login credentials", "danger")
 
     return render_template('citizen_login.html')
+
 @app.route('/citizen_dashboard')
 def citizen_dashboard():
-    if 'citizen_id' not in session:
-        return redirect('/citizen_login')
 
     cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cur.execute(
-        "SELECT * FROM citizen WHERE citizen_id=%s",
-        (session['citizen_id'],)
-    )
-    citizen = cur.fetchone()
+
+    # Total FIRs
+    cur.execute("SELECT COUNT(*) AS total FROM fir")
+    total_firs = cur.fetchone()['total']
+
+    # Open Cases
+    cur.execute("SELECT COUNT(*) AS total FROM fir WHERE status='Open'")
+    open_cases = cur.fetchone()['total']
+
+    # Closed Cases
+    cur.execute("SELECT COUNT(*) AS total FROM fir WHERE status='Closed'")
+    closed_cases = cur.fetchone()['total']
+
+    # Under Investigation
+    cur.execute("SELECT COUNT(*) AS total FROM fir WHERE status='Under Investigation'")
+    investigation_cases = cur.fetchone()['total']
+
+    # Officers
+    cur.execute("SELECT COUNT(*) AS total FROM officer")
+    total_officers = cur.fetchone()['total']
+
+    # Citizens
+    cur.execute("SELECT COUNT(*) AS total FROM citizen_users")
+    total_citizens = cur.fetchone()['total']
+
     cur.close()
 
-    return render_template('citizen_dashboard.html', citizen=citizen)
+    return render_template(
+        'citizen_dashboard.html',
+        total_firs=total_firs,
+        open_cases=open_cases,
+        closed_cases=closed_cases,
+        investigation_cases=investigation_cases,
+        total_officers=total_officers,
+        total_citizens=total_citizens
+    )
+
 @app.route('/citizen_logout')
 def citizen_logout():
     session.clear()
