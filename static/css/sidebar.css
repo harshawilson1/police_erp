@@ -1,0 +1,81 @@
+        /* SIDEBAR */
+        .sidebar {
+            height: 100vh;
+            background: #0d1b2a;
+            position: fixed;
+            width: 240px;
+            padding-top: 20px;
+            transition: 0.3s;
+        }
+
+        .sidebar.collapsed {
+            width: 70px;
+        }
+
+        .sidebar h4 {
+            color: white;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            margin: 6px 10px;
+            color: #cbd5e1;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: 0.2s;
+        }
+
+        .sidebar a i {
+            font-size: 18px;
+            width: 25px;
+        }
+
+        .sidebar a span {
+            margin-left: 10px;
+        }
+
+        .sidebar a:hover {
+            background: #1b263b;
+            color: #fff;
+            transform: translateX(4px);
+        }
+
+        .sidebar a.active {
+            background: #1b263b;
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .sidebar.collapsed a span {
+            display: none;
+        }
+
+        /* CONTENT */
+        .content {
+            margin-left: 240px;
+            padding: 20px;
+            transition: 0.3s;
+        }
+
+        .content.collapsed {
+            margin-left: 70px;
+        }
+
+        /* CARDS */
+        .card-hover:hover {
+            transform: translateY(-3px);
+            transition: 0.2s;
+        }
+
+        /* PROFILE */
+        .profile-img {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            object-fit: cover;
+        }

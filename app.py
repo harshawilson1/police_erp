@@ -50,21 +50,46 @@ def police_dashboard():
 
     cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
 
+    # Crime map data
     cur.execute("""
         SELECT city, latitude, longitude, COUNT(*) AS total_cases
         FROM fir
         GROUP BY city, latitude, longitude
     """)
-
     crime_data = cur.fetchall()
+
+    # Total FIRs
+    cur.execute("SELECT COUNT(*) AS total FROM fir")
+    total_firs = cur.fetchone()['total']
+
+    # Open cases
+    cur.execute("SELECT COUNT(*) AS total FROM fir WHERE status='open'")
+    open_cases = cur.fetchone()['total']
+
+    # Total officers
+    cur.execute("SELECT COUNT(*) AS total FROM officer")
+    total_officers = cur.fetchone()['total']
+
+    # Total citizens
+    cur.execute("SELECT COUNT(*) AS total FROM citizen")
+    total_citizens = cur.fetchone()['total']
+    cur.execute("SELECT COUNT(*) AS total FROM officer_attendance WHERE status='Present'")
+    present_officers = cur.fetchone()['total']
+
+    cur.execute("SELECT COUNT(*) AS total FROM officer_attendance WHERE status='Sick Leave'")
+    sick_leave = cur.fetchone()['total']
+
     cur.close()
 
     return render_template(
         'police_dashboard.html',
-        crime_data=crime_data
+        crime_data=crime_data,
+        total_firs=total_firs,
+        open_cases=open_cases,
+        total_officers=total_officers,
+        total_citizens=total_citizens
     )
 
-# ---------- ADD FIR ----------
 @app.route('/add_fir', methods=['GET', 'POST'])
 def add_fir():
     if 'username' not in session:
@@ -72,7 +97,7 @@ def add_fir():
 
     cur = mysql.connection.cursor()
 
-    # Dropdown data (crime & station stay as dropdowns)
+    # Dropdown data
     cur.execute("SELECT crime_id, crime_type FROM crime")
     crimes = cur.fetchall()
 
@@ -80,36 +105,48 @@ def add_fir():
     stations = cur.fetchall()
 
     if request.method == 'POST':
-        # Citizen data from textbox
+
+        # Citizen data
         citizen_name = request.form['citizen_name']
         citizen_phone = request.form['citizen_phone']
         citizen_address = request.form['citizen_address']
 
-        # Insert citizen
-        cur.execute(
-            "INSERT INTO citizen (name, phone, address) VALUES (%s, %s, %s)",
-            (citizen_name, citizen_phone, citizen_address)
-        )
-        citizen_id = cur.lastrowid  # 👈 VERY IMPORTANT
+        # FIR location
+        city = request.form['city']
 
         # FIR data
         crime_id = request.form['crime_id']
         station_id = request.form['station_id']
         status = request.form['status']
 
+        # Insert citizen (NO city column here)
+        cur.execute(
+            """
+            INSERT INTO citizen (name, phone, address)
+            VALUES (%s, %s, %s)
+            """,
+            (citizen_name, citizen_phone, citizen_address)
+        )
+
+        citizen_id = cur.lastrowid
+
         # Insert FIR
         cur.execute(
-            """INSERT INTO fir
-               (citizen_id, crime_id, station_id, fir_date, status)
-               VALUES (%s, %s, %s, CURDATE(), %s)""",
-            (citizen_id, crime_id, station_id, status)
+            """
+            INSERT INTO fir
+            (citizen_id, crime_id, station_id, fir_date, status, city)
+            VALUES (%s, %s, %s, CURDATE(), %s, %s)
+            """,
+            (citizen_id, crime_id, station_id, status, city)
         )
 
         mysql.connection.commit()
         cur.close()
+
         return redirect('/view_fir')
 
     cur.close()
+
     return render_template(
         'add_fir.html',
         crimes=crimes,
@@ -122,18 +159,39 @@ def view_fir():
     if 'username' not in session:
         return redirect('/')
 
-    cur = mysql.connection.cursor()
-    cur.execute("""
-        SELECT f.fir_id, c.name, cr.crime_type, f.status
-        FROM fir f
-        JOIN citizen c ON f.citizen_id = c.citizen_id
-        JOIN crime cr ON f.crime_id = cr.crime_id
-    """)
+    search = request.args.get('search')
+
+    cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+    if search:
+        cur.execute("""
+            SELECT 
+                f.fir_id,
+                c.name AS citizen_name,
+                cr.crime_type,
+                f.status
+            FROM fir f
+            JOIN citizen c ON f.citizen_id = c.citizen_id
+            JOIN crime cr ON f.crime_id = cr.crime_id
+            WHERE c.name LIKE %s OR f.city LIKE %s
+        """, ('%' + search + '%', '%' + search + '%'))
+
+    else:
+        cur.execute("""
+            SELECT 
+                f.fir_id,
+                c.name AS citizen_name,
+                cr.crime_type,
+                f.status
+            FROM fir f
+            JOIN citizen c ON f.citizen_id = c.citizen_id
+            JOIN crime cr ON f.crime_id = cr.crime_id
+        """)
+
     firs = cur.fetchall()
     cur.close()
 
-    return render_template('view_fir.html', firs=firs)
-
+    return render_template("view_fir.html", firs=firs)
 # ---------- EDIT FIR ----------
 @app.route('/edit_fir/<int:fir_id>', methods=['GET', 'POST'])
 def edit_fir(fir_id):

@@ -13,6 +13,7 @@
     <!-- Leaflet -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
 
     <style>
         body {
@@ -205,6 +206,23 @@
             </div>
         </div>
     </div>
+<div class="col-md-3">
+<div class="card shadow text-center">
+<div class="card-body">
+<h4>{{ present_officers }}</h4>
+<p>Officers Present</p>
+</div>
+</div>
+</div>
+
+<div class="col-md-3">
+<div class="card shadow text-center">
+<div class="card-body">
+<h4>{{ sick_leave }}</h4>
+<p>Sick Leave</p>
+</div>
+</div>
+</div>
 
     <!-- MAP + COURT -->
     <div class="row g-3">
@@ -235,44 +253,74 @@
 
 <!-- MAP SCRIPT -->
 <script>
+
+// Base map layers
 var street = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+
 var satellite = L.tileLayer(
-    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
 );
 
+// Create map
 var map = L.map('crimeMap', {
-    center: [20.5937, 78.9629],
-    zoom: 5,
-    layers: [satellite]
+center: [20.5937, 78.9629], // India center
+zoom: 5,
+layers: [satellite]
 });
 
+// Layer control
 L.control.layers({
-    "Satellite View": satellite,
-    "Street View": street
+"Satellite View": satellite,
+"Street View": street
 }).addTo(map);
 
+// Get data from Flask
 const crimeData = {{ crime_data | tojson }};
 
+// Heatmap points array
+let heatPoints = [];
+
+// Normal markers (optional)
+let markers = [];
+
+// Loop through DB data
 crimeData.forEach(item => {
+
     if (!item.latitude || !item.longitude) return;
 
-    let color = item.total_cases > 20 ? 'red' :
-                item.total_cases > 10 ? 'orange' : 'green';
+    // Add heatmap point
+    heatPoints.push([
+        item.latitude,
+        item.longitude,
+        item.total_cases
+    ]);
 
-    L.circleMarker([item.latitude, item.longitude], {
-        radius: 10,
-        color,
-        fillColor: color,
-        fillOpacity: 0.75
-    }).addTo(map)
-      .bindPopup(`<strong>${item.city}</strong><br>Total Crimes: ${item.total_cases}`);
+    // Optional marker popup
+    let marker = L.marker([item.latitude, item.longitude])
+        .bindPopup(
+            "<b>" + item.city + "</b><br>" +
+            "Total Crimes: " + item.total_cases
+        );
+
+    markers.push(marker);
 });
 
-function toggleSidebar() {
-    document.querySelector('.sidebar').classList.toggle('collapsed');
-    document.querySelector('.content').classList.toggle('collapsed');
-}
-</script>
+// Add markers
+markers.forEach(m => m.addTo(map));
 
+// Create heatmap layer
+var heat = L.heatLayer(heatPoints, {
+radius: 35,
+blur: 25,
+maxZoom: 10
+}).addTo(map);
+
+// Sidebar toggle
+function toggleSidebar() {
+document.querySelector('.sidebar').classList.toggle('collapsed');
+document.querySelector('.content').classList.toggle('collapsed');
+}
+
+</script>
 </body>
 </html>
