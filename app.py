@@ -3,16 +3,20 @@ from flask_mysqldb import MySQL
 import MySQLdb.cursors
 from werkzeug.security import generate_password_hash
 from MySQLdb import IntegrityError
-
-
+import os
+import pymysql
+pymysql.install_as_MySQLdb()
 app = Flask(__name__)
 app.secret_key = 'police_erp_secret'
 
 # ---------- MySQL Configuration ----------
-app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = 'root123'
-app.config['MYSQL_DB'] = 'police_erp'
+
+
+app.config['MYSQL_HOST'] = os.getenv('MYSQL_HOST', 'shuttle.proxy.rlwy.net')
+app.config['MYSQL_USER'] = os.getenv('MYSQL_USER', 'root')
+app.config['MYSQL_PASSWORD'] = os.getenv('MYSQL_PASSWORD', 'XRdJNIUEJYSCaqRcokOOQZCKEVggylMZ')
+app.config['MYSQL_DB'] = os.getenv('MYSQL_DB', 'railway')
+app.config['MYSQL_PORT'] = int(os.getenv('MYSQL_PORT', 26508))
 
 mysql = MySQL(app)
 
