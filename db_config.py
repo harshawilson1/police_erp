@@ -1,4 +1,5 @@
-MYSQL_HOST = 'localhost'
+MYSQL_HOST = 'shuttle.proxy.rlwy.net'
 MYSQL_USER = 'root'
-MYSQL_PASSWORD = 'root123'
-MYSQL_DB = 'police_erp'
+MYSQL_PASSWORD = 'XRdJNIUEJYSCaqRcokOOQZCKEVggylMZ'
+MYSQL_DB = 'railway'
+MYSQL_PORT = 26508
