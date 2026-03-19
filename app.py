@@ -136,8 +136,8 @@ def add_fir():
             status = request.form.get('status')
 
             # Validate all fields
-            if not all([citizen_name, citizen_phone, citizen_address, city, crime_id, station_id, status]):
-                flash("All fields are required!", "danger")
+            if not all([citizen_name, city, crime_id, station_id, status]):
+                flash("Required fields missing!", "danger")
                 return render_template('add_fir.html', crimes=crimes, stations=stations)
 
             # Convert IDs to integer
