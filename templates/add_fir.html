@@ -114,7 +114,7 @@
                                 <select name="crime_id" class="form-select" required>
     <option value="" disabled selected>Select Crime</option>
     {% for cr in crimes %}
-        <option value="{{ cr[0] }}">{{ cr[1] }}</option>
+        <option value="{{ cr['crime_id'] }}">{{ cr['crime_type'] }}</option>
     {% endfor %}
 </select>
                         </div>
