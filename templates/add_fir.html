@@ -110,8 +110,7 @@
                         <!-- Crime Dropdown -->
                         <div class="mb-3">
                             <label class="form-label">Crime Type</label>
-                            <select name="crime_id" class="form-select" required>
-                                <select name="crime_id" class="form-select" required>
+<select name="crime_id" class="form-select" required>
     <option value="" disabled selected>Select Crime</option>
     {% for cr in crimes %}
         <option value="{{ cr['crime_id'] }}">{{ cr['crime_type'] }}</option>
