@@ -39,6 +39,13 @@
         .quick-actions a {
             margin: 5px;
         }
+        .chart-container {
+    position: relative;
+    width: 100%;        /* Full width of parent card */
+    max-width: 400px;   /* Limit max width */
+    height: auto;
+    margin: auto;       /* Center horizontally */
+}
     </style>
 </head>
 
@@ -103,7 +110,9 @@
     <!-- CHART -->
     <div class="stat-card mb-4">
         <h5>Case Status Overview</h5>
-        <canvas id="caseChart"></canvas>
+        <div class="chart-container">
+            <canvas id="caseChart"></canvas>
+        </div>
     </div>
 
     <!-- RECENT FIR TABLE -->
@@ -164,6 +173,15 @@ const caseChart = new Chart(document.getElementById('caseChart'), {
             ],
             backgroundColor: ['#dc3545', '#28a745', '#ffc107']
         }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
     }
 });
 </script>
