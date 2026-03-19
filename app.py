@@ -445,6 +445,9 @@ def neighbourhood_complaints():
 
 @app.route('/request_fir', methods=['GET', 'POST'])
 def request_fir():
+    if 'username' not in session or session.get('role') != 'citizen':
+        return redirect('/login')
+
     if request.method == 'POST':
         name = request.form['citizen_name']
         phone = request.form['citizen_phone']
@@ -452,26 +455,44 @@ def request_fir():
         crime = request.form['crime_type']
         city = request.form['city']
 
+        # Insert request
         cur.execute("""
-            INSERT INTO fir_requests 
+            INSERT INTO fir_requests
             (citizen_name, phone, address, crime_type, city)
             VALUES (%s,%s,%s,%s,%s)
         """, (name, phone, address, crime, city))
-
         conn.commit()
-        flash("Request submitted. Police will review it.", "success")
+        flash("FIR request submitted. Police will review it.", "success")
 
     return render_template('request_fir.html')
 
 
 @app.route('/my_firs')
 def my_firs():
-    username = session['username']
+    if 'username' not in session or session.get('role') != 'citizen':
+        return redirect('/login')
 
-    cur.execute("SELECT * FROM fir_requests WHERE citizen_name=%s", (username,))
-    data = cur.fetchall()
+    username = session['username']  # assuming username is citizen name
 
-    return render_template('my_firs.html', data=data)
+    cur.execute("""
+        SELECT request_id, crime_type, city, status, created_at
+        FROM fir_requests
+        WHERE citizen_name=%s
+        ORDER BY created_at DESC
+    """, (username,))
+    requests = cur.fetchall()
+
+    return render_template('my_firs.html', requests=requests)
+@app.route('/approve_request/<int:request_id>', methods=['POST'])
+def approve_request(request_id):
+    if session.get('role') != 'police':
+        return "Unauthorized", 403
+
+    decision = request.form['decision']  # Approved / Rejected
+    cur.execute("UPDATE fir_requests SET status=%s WHERE request_id=%s", (decision, request_id))
+    conn.commit()
+    flash(f"Request {decision.lower()}", "success")
+    return redirect('/pending_requests')
 # ---------- RUN ----------
 if __name__ == '__main__':
     app.run(debug=True)

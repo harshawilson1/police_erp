@@ -60,14 +60,14 @@
     <h5 class="mb-3">Welcome, {{ session.username }}</h5>
 
     <!-- QUICK ACTIONS -->
-    <div class="stat-card mb-4 quick-actions">
-        <h5>Quick Actions</h5>
-        <a href="/request_fir" class="btn btn-primary btn-sm">Request FIR</a>
-        <a href="/my_firs" class="btn btn-secondary btn-sm">My FIR Status</a>
-        <a href="/neighbourhood_complaints" class="btn btn-dark btn-sm">Neighbourhood Complaint</a>
-        <a href="/missing_persons" class="btn btn-warning btn-sm">Missing Persons</a>
-        <a href="/emergency_call" class="btn btn-danger btn-sm">🚨 Emergency</a>
-    </div>
+   <div class="stat-card mb-4 quick-actions">
+    <h5>Quick Actions</h5>
+    <a href="/request_fir" class="btn btn-primary btn-sm">Request FIR</a>
+    <a href="/my_firs" class="btn btn-secondary btn-sm">Track My Cases</a>
+    <a href="/neighbourhood_complaints" class="btn btn-dark btn-sm">Neighbourhood Complaint</a>
+    <a href="/missing_persons" class="btn btn-warning btn-sm">Search Missing Persons</a>
+    <a href="/emergency_call" class="btn btn-danger btn-sm">🚨 Emergency</a>
+</div>
 
     <!-- STATS -->
     <div class="row mb-4">
@@ -111,41 +111,41 @@
         <h5>Recent FIRs</h5>
 
         <table class="table table-striped mt-3">
-            <thead>
-                <tr>
-                    <th>FIR ID</th>
-                    <th>Citizen</th>
-                    <th>Crime</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                {% for fir in recent_firs %}
-                <tr>
-                    <td>{{ fir.fir_id }}</td>
-                    <td>{{ fir.citizen_name }}</td>
-                    <td>{{ fir.crime_type }}</td>
-
-                    <td>
-                        {% if fir.status == "Open" %}
-                            <span class="badge bg-danger">Open</span>
-                        {% elif fir.status == "Closed" %}
-                            <span class="badge bg-success">Closed</span>
-                        {% else %}
-                            <span class="badge bg-warning">Under Investigation</span>
-                        {% endif %}
-                    </td>
-
-                    <td>
-                        <a href="/view_fir/{{ fir.fir_id }}" class="btn btn-sm btn-primary">View</a>
-                        <a href="/download_fir/{{ fir.fir_id }}" class="btn btn-sm btn-success">Download</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <thead>
+        <tr>
+            <th>Request ID</th>
+            <th>Crime</th>
+            <th>City</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for req in requests %}
+        <tr>
+            <td>{{ req.request_id }}</td>
+            <td>{{ req.crime_type }}</td>
+            <td>{{ req.city }}</td>
+            <td>
+                {% if req.status == "Pending" %}
+                    <span class="badge bg-warning">Pending</span>
+                {% elif req.status == "Approved" %}
+                    <span class="badge bg-success">Approved</span>
+                {% else %}
+                    <span class="badge bg-danger">Rejected</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if req.status == "Approved" %}
+                    <a href="/download_fir/{{ req.request_id }}" class="btn btn-sm btn-success">Download</a>
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
     </div>
 
 </div>
