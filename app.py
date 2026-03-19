@@ -112,8 +112,8 @@ def police_dashboard():
 # ---------- ADD FIR ----------
 @app.route('/add_fir', methods=['GET', 'POST'])
 def add_fir():
-    if 'username' not in session:
-        return redirect('/')
+    if session.get('role') != 'police':
+        return "Unauthorized", 403
 
     conn = get_db()
     cur = conn.cursor()
@@ -178,8 +178,8 @@ def add_fir():
 # ---------- VIEW FIR ----------
 @app.route('/view_fir')
 def view_fir():
-    if 'username' not in session:
-        return redirect('/')
+    if session.get('role') != 'police':
+        return "Unauthorized", 403
 
     conn = get_db()
     cur = conn.cursor()
@@ -441,6 +441,37 @@ def missing_persons():
 @app.route('/neighbourhood_complaints')
 def neighbourhood_complaints():
     return render_template('neighbourhood.html')
+
+
+@app.route('/request_fir', methods=['GET', 'POST'])
+def request_fir():
+    if request.method == 'POST':
+        name = request.form['citizen_name']
+        phone = request.form['citizen_phone']
+        address = request.form['citizen_address']
+        crime = request.form['crime_type']
+        city = request.form['city']
+
+        cur.execute("""
+            INSERT INTO fir_requests 
+            (citizen_name, phone, address, crime_type, city)
+            VALUES (%s,%s,%s,%s,%s)
+        """, (name, phone, address, crime, city))
+
+        conn.commit()
+        flash("Request submitted. Police will review it.", "success")
+
+    return render_template('request_fir.html')
+
+
+@app.route('/my_firs')
+def my_firs():
+    username = session['username']
+
+    cur.execute("SELECT * FROM fir_requests WHERE citizen_name=%s", (username,))
+    data = cur.fetchall()
+
+    return render_template('my_firs.html', data=data)
 # ---------- RUN ----------
 if __name__ == '__main__':
     app.run(debug=True)
