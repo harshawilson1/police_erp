@@ -46,6 +46,9 @@ def login():
             session['role'] = user['role']
             session['username'] = username
 
+            if user['role'] == 'police':
+                session['officer_id'] = user['user_id']
+
             cur.execute("INSERT INTO login_logs(username) VALUES (%s)", (username,))
             conn.commit()
 
