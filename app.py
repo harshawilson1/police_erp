@@ -462,36 +462,43 @@ def download_fir(fir_id):
     return f"Download FIR {fir_id}"  # later convert to PDF
 @app.route('/missing_persons', methods=['GET', 'POST'])
 def missing_persons():
-    # Only logged-in citizens can access
     if 'username' not in session or session.get('role') != 'citizen':
         return redirect('/login')
 
+    conn = get_db()
     cur = conn.cursor()
 
-    if request.method == 'POST':
-        name = request.form['name']
-        city = request.form['city']
-        status = request.form.get('status', 'Missing')
-        reported_by = session['username']
+    try:
+        if request.method == 'POST':
+            name = request.form['name']
+            city = request.form['city']
+            status = request.form.get('status', 'Missing')
+            reported_by = session['username']
 
-        # Insert into database
+            cur.execute("""
+                INSERT INTO missing_persons (name, city, status, reported_by)
+                VALUES (%s, %s, %s, %s)
+            """, (name, city, status, reported_by))
+            conn.commit()
+
+            flash("Missing person report submitted successfully!", "success")
+            return redirect('/missing_persons')
+
         cur.execute("""
-            INSERT INTO missing_persons (name, city, status, reported_by)
-            VALUES (%s, %s, %s, %s)
-        """, (name, city, status, reported_by))
-        conn.commit()
-        flash("Missing person report submitted successfully!", "success")
-        return redirect('/missing_persons')
+            SELECT name, city, status
+            FROM missing_persons
+            ORDER BY created_at DESC
+            LIMIT 5
+        """)
+        recent_missing = cur.fetchall()
 
-    # For GET: fetch recent 5 reports
-    cur.execute("""
-        SELECT name, city, status
-        FROM missing_persons
-        ORDER BY created_at DESC
-        LIMIT 5
-    """)
-    recent_missing = cur.fetchall()
-    cur.close()
+    except Exception as e:
+        flash(f"Error: {str(e)}", "danger")
+        recent_missing = []
+
+    finally:
+        cur.close()
+        conn.close()
 
     return render_template('missing_persons.html', recent_missing=recent_missing)
 @app.route('/neighbourhood_complaints', methods=['GET', 'POST'])
