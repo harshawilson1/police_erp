@@ -506,34 +506,43 @@ def neighbourhood_complaints():
     if 'username' not in session or session.get('role') != 'citizen':
         return redirect('/login')
 
-    if request.method == 'POST':
-        citizen_name = request.form['citizen_name']
-        city = request.form['city']
-        complaint_text = request.form['complaint_text']
-
-        cur = conn.cursor()
-        cur.execute("""
-            INSERT INTO neighbourhood_complaints (citizen_name, city, complaint_text)
-            VALUES (%s, %s, %s)
-        """, (citizen_name, city, complaint_text))
-        conn.commit()
-        cur.close()
-        flash("Complaint submitted successfully!", "success")
-        return redirect('/neighbourhood_complaints')
-
-    # For GET: show recent complaints on the page/dashboard
+    conn = get_db()
     cur = conn.cursor()
-    cur.execute("""
-        SELECT citizen_name, city, complaint_text, status
-        FROM neighbourhood_complaints
-        ORDER BY created_at DESC
-        LIMIT 5
-    """)
-    recent_complaints = cur.fetchall()
-    cur.close()
-    
-    return render_template('neighbourhood_complaints.html', recent_complaints=recent_complaints)
 
+    try:
+        if request.method == 'POST':
+            citizen_name = request.form['citizen_name']
+            city = request.form['city']
+            complaint_text = request.form['complaint_text']
+
+            cur.execute("""
+                INSERT INTO neighbourhood_complaints 
+                (citizen_name, city, complaint_text)
+                VALUES (%s, %s, %s)
+            """, (citizen_name, city, complaint_text))
+            conn.commit()
+
+            flash("Complaint submitted successfully!", "success")
+            return redirect('/neighbourhood_complaints')
+
+        # GET request
+        cur.execute("""
+            SELECT citizen_name, city, complaint_text, status
+            FROM neighbourhood_complaints
+            ORDER BY created_at DESC
+            LIMIT 5
+        """)
+        recent_complaints = cur.fetchall()
+
+    except Exception as e:
+        flash(f"Error: {str(e)}", "danger")
+        recent_complaints = []
+
+    finally:
+        cur.close()
+        conn.close()
+
+    return render_template('neighbourhood_complaints.html', recent_complaints=recent_complaints)
 
 @app.route('/request_fir', methods=['GET', 'POST'])
 def request_fir():
