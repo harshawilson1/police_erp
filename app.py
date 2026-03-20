@@ -577,15 +577,27 @@ def my_firs():
     if 'username' not in session or session.get('role') != 'citizen':
         return redirect('/login')
 
-    username = session['username']  # assuming username is citizen name
+    try:
+        conn = get_db()
+        cur = conn.cursor()
 
-    cur.execute("""
-        SELECT request_id, crime_type, city, status, created_at
-        FROM fir_requests
-        WHERE citizen_name=%s
-        ORDER BY created_at DESC
-    """, (username,))
-    requests = cur.fetchall()
+        username = session['username']
+
+        cur.execute("""
+            SELECT request_id, crime_type, city, status, created_at
+            FROM fir_requests
+            WHERE citizen_name=%s
+            ORDER BY created_at DESC
+        """, (username,))
+
+        requests = cur.fetchall()
+
+    except Exception as e:
+        return f"Error: {str(e)}"   # TEMP DEBUG
+
+    finally:
+        cur.close()
+        conn.close()
 
     return render_template('my_firs.html', requests=requests)
 @app.route('/approve_request/<int:request_id>', methods=['POST'])
