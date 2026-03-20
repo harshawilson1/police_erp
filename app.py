@@ -372,6 +372,7 @@ def citizen_dashboard():
 # ---------- OFFICER PROFILE ----------
 @app.route('/officer_profile', methods=['GET','POST'])
 def officer_profile():
+    print("Session:", session)
     if 'officer_id' not in session:
         return redirect('/')
 
