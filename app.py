@@ -181,8 +181,8 @@ def add_fir():
 # ---------- VIEW FIR ----------
 @app.route('/view_fir')
 def view_fir():
-    if session.get('role') != 'police':
-        return "Unauthorized", 403
+    if 'username' not in session:
+        return redirect('/')
 
     conn = get_db()
     cur = conn.cursor()
