@@ -43,7 +43,7 @@ color:white !important;
 
 .hero{
 height:350px;
-background:url("https://images.unsplash.com/photo-1581090700227-1e37b190418e") center/cover;
+background:url("{{ url_for('static', filename='images/bg_home.jpg') }}") center/cover;
 display:flex;
 align-items:center;
 justify-content:center;
@@ -197,8 +197,8 @@ border-bottom:3px solid yellow;
 <div class="col-md-4">
 <div class="news-card text-center">
 
-<img src="https://images.unsplash.com/photo-1564399579883-451a5d44ec08"
-class="img-fluid rounded mb-3">
+<img src="{{ url_for('static', filename='images/story_1.jpg') }}"
+     class="img-fluid rounded mb-3">
 
 <h5>🚓 Rescue Operation</h5>
 
@@ -215,8 +215,8 @@ and safely evacuated them to relief shelters.
 <div class="col-md-4">
 <div class="news-card text-center">
 
-<img src="https://images.unsplash.com/photo-1581091012184-5c7a2b16a2c0"
-class="img-fluid rounded mb-3">
+<img src="{{ url_for('static', filename='images/story_2.jpg') }}"
+     class="img-fluid rounded mb-3">
 
 <h5>🚨 Crime Prevention</h5>
 
@@ -233,8 +233,8 @@ saving citizens from financial loss.
 <div class="col-md-4">
 <div class="news-card text-center">
 
-<img src="https://images.unsplash.com/photo-1607746882042-944635dfe10e"
-class="img-fluid rounded mb-3">
+<img src="{{ url_for('static', filename='images/story_3.jpg') }}"
+     class="img-fluid rounded mb-3">
 
 <h5>❤️ Community Support</h5>
 
@@ -260,7 +260,7 @@ within hours using surveillance systems.
 
 <div class="carousel-item active">
 
-<img src="https://images.unsplash.com/photo-1593113598332-cd288d649433"
+<img src="{{ url_for('static', filename='images/slide1.jpg') }}"
 class="d-block w-100"
 style="height:420px; object-fit:cover;">
 
@@ -278,7 +278,7 @@ style="height:420px; object-fit:cover;">
 
 <div class="carousel-item">
 
-<img src="https://images.unsplash.com/photo-1529070538774-1843cb3265df"
+<img src="{{ url_for('static', filename='images/slide2.jpg') }}"
 class="d-block w-100"
 style="height:420px; object-fit:cover;">
 
@@ -296,7 +296,7 @@ style="height:420px; object-fit:cover;">
 
 <div class="carousel-item">
 
-<img src="https://images.unsplash.com/photo-1581092335878-2d9ff86ca2bf"
+<img src="{{ url_for('static', filename='images/slide3.jpg') }}"
 class="d-block w-100"
 style="height:420px; object-fit:cover;">
 
