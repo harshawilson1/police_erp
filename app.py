@@ -781,6 +781,55 @@ def update_court_date(court_id):
 
     flash("Updated successfully!", "success")
     return redirect('/court_management')
+@app.route('/settings', methods=['GET', 'POST'])
+def settings():
+    if 'username' not in session:
+        return redirect('/login')
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    try:
+        # Fetch current user
+        cur.execute("SELECT * FROM officer WHERE officer_id=%s", (session.get('officer_id'),))
+        user = cur.fetchone()
+
+        # UPDATE PROFILE
+        if request.method == 'POST' and 'update_profile' in request.form:
+            cur.execute("""
+                UPDATE officer
+                SET phone=%s, email=%s
+                WHERE officer_id=%s
+            """, (
+                request.form['phone'],
+                request.form['email'],
+                session['officer_id']
+            ))
+            conn.commit()
+            flash("Profile updated!", "success")
+
+        # CHANGE PASSWORD
+        if request.method == 'POST' and 'change_password' in request.form:
+            new_password = generate_password_hash(request.form['new_password'])
+
+            cur.execute("""
+                UPDATE users
+                SET password=%s
+                WHERE username=%s
+            """, (new_password, session['username']))
+
+            conn.commit()
+            flash("Password updated!", "success")
+
+    except Exception as e:
+        conn.rollback()
+        flash(str(e), "danger")
+
+    finally:
+        cur.close()
+        conn.close()
+
+    return render_template('settings.html', user=user)
 # ---------- RUN ----------
 if __name__ == '__main__':
     app.run(debug=True)
